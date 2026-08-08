@@ -18,7 +18,8 @@ export type EventType =
   | "blocker_resolved"
   | "goal_health_changed"
   | "task_assigned"
-  | "dependency_unblocked";
+  | "dependency_unblocked"
+  | "due_date_changed";
 
 export interface Person {
   id: string;

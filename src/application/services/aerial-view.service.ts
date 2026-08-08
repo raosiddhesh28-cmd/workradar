@@ -150,13 +150,11 @@ export async function getAerialView(personId: string, now: Date = NOW): Promise<
     direction: "blocking_me" | "im_blocking",
   ): Promise<BlockerItem> => {
     const chain = buildBlockerChainForDependency(graph, dep, direction, now);
-    const taskId =
-      direction === "blocking_me" ? dep.blockedTaskId : dep.blockedTaskId;
-    const blockedTask = taskId ? graph.tasks.find((t) => t.id === taskId) : null;
-    const blockerTaskId =
-      direction === "blocking_me" ? dep.blockerTaskId : dep.blockedTaskId;
-    const blockerTask = blockerTaskId
-      ? graph.tasks.find((t) => t.id === blockerTaskId)
+    const blockedTask = dep.blockedTaskId
+      ? graph.tasks.find((t) => t.id === dep.blockedTaskId)
+      : null;
+    const blockerTask = dep.blockerTaskId
+      ? graph.tasks.find((t) => t.id === dep.blockerTaskId)
       : null;
     const displayTask =
       direction === "blocking_me" ? blockerTask : blockedTask ?? blockerTask;
@@ -312,7 +310,11 @@ export async function getTeamRollup(managerId: string, now: Date = NOW) {
   const reportData = await Promise.all(
     reports.map(async (report) => {
       const aerial = await getAerialView(report.id, now);
-      const openCount = aerial.topWork.length;
+      const openCount = graph.tasks.filter(
+        (t) =>
+          t.ownerId === report.id &&
+          (t.status === "open" || t.status === "in_progress"),
+      ).length;
       const blockerCount =
         aerial.whoIsBlocked.blockingMe.length +
         aerial.whoIsBlocked.imBlocking.length;
@@ -328,15 +330,22 @@ export async function getTeamRollup(managerId: string, now: Date = NOW) {
 
   const teamBlockersNested = await Promise.all(
     reports.map(async (r) => {
-      const { imBlocking, blockingMe } = (await getAerialView(r.id, now)).whoIsBlocked;
+      const { imBlocking, blockingMe } = (await getAerialView(r.id, now))
+        .whoIsBlocked;
       return [...imBlocking, ...blockingMe];
     }),
   );
 
+  const seenDepIds = new Set<string>();
+  const teamBlockers = teamBlockersNested.flat().filter((item) => {
+    if (seenDepIds.has(item.dependency.id)) return false;
+    seenDepIds.add(item.dependency.id);
+    return true;
+  });
+
   return {
     manager,
     reports: reportData,
-    teamBlockers: teamBlockersNested.flat(),
-    graph,
+    teamBlockers,
   };
 }

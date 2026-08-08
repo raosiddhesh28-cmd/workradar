@@ -31,7 +31,10 @@ export default async function ProgressPage({
             Transparent task-count progress — not a productivity score
           </p>
         </div>
-        <PersonaSwitcher currentPersonId={person.id} />
+        <PersonaSwitcher
+          currentPersonId={person.id}
+          currentRole={person.role}
+        />
         <ScopeSwitcher
           basePath="/progress"
           currentScope={summary.scope}
