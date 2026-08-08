@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { BlockerItem } from "@/application/services/aerial-view.service";
 import { LinkButton } from "@/components/shared/LinkButton";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 interface WhoIsBlockedCardProps {
   blockingMe: BlockerItem[];
@@ -21,17 +22,19 @@ function formatBlockedMeta(item: BlockerItem): string {
 function BlockerList({
   title,
   items,
-  empty,
+  emptyTitle,
+  emptyDescription,
 }: {
   title: string;
   items: BlockerItem[];
-  empty: string;
+  emptyTitle: string;
+  emptyDescription: string;
 }) {
   return (
     <div className="space-y-2">
       <h4 className="text-sm font-medium">{title}</h4>
       {items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{empty}</p>
+        <EmptyState title={emptyTitle} description={emptyDescription} className="p-4" />
       ) : (
         <ul className="space-y-3">
           {items.map((item) => (
@@ -77,20 +80,23 @@ export function WhoIsBlockedCard({ blockingMe, imBlocking }: WhoIsBlockedCardPro
       </CardHeader>
       <CardContent className="space-y-4">
         {total === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            You&apos;re not blocking anyone — nice.
-          </p>
+          <EmptyState
+            title="No blockers"
+            description="You're not currently blocked by another task."
+          />
         ) : (
           <>
             <BlockerList
               title="Blocking me"
               items={blockingMe}
-              empty="No one is blocking you."
+              emptyTitle="No one is blocking you"
+              emptyDescription="No upstream dependencies are holding up your work."
             />
             <BlockerList
               title="I'm blocking"
               items={imBlocking}
-              empty="No one is waiting on you."
+              emptyTitle="No one is waiting on you"
+              emptyDescription="You're not blocking anyone else's work."
             />
           </>
         )}

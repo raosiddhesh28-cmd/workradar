@@ -4,8 +4,10 @@ import { getTaskBlockerContext } from "@/application/services/aerial-view.servic
 import { getCurrentPersonId } from "@/infrastructure/session/mock-session";
 import { getGoalPath } from "@/domain/graph/impact-graph";
 import { getGraphStore } from "@/infrastructure/store";
+import { DEMO_PERSONAS } from "@/infrastructure/seed/people";
 import { ImpactExplanation } from "@/components/impact/ImpactExplanation";
 import { BlockerChainView } from "@/components/blockers/BlockerChainView";
+import { AssignTaskPanel } from "@/components/tasks/AssignTaskPanel";
 import { Button } from "@/components/ui/button";
 import { completeTask, deferTask } from "@/app/actions";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +23,13 @@ export default async function TaskDetailPage({
   if (!detail) notFound();
 
   const { task, impactScore, blockerChains } = detail;
-  const goalPath = getGoalPath(getGraphStore().getGraph(), task.linkedGoalId);
+  const store = getGraphStore();
+  const goalPath = getGoalPath(store.getGraph(), task.linkedGoalId);
+  const assignee = store.getPerson(task.ownerId);
+  const assignCandidates = DEMO_PERSONAS.map((p) => ({
+    id: p.id,
+    name: store.getPerson(p.id)?.name ?? p.label.split(" — ")[0] ?? p.id,
+  }));
 
   return (
     <main className="mx-auto max-w-3xl w-full px-4 py-8 space-y-6">
@@ -37,6 +45,13 @@ export default async function TaskDetailPage({
         <h1 className="text-2xl font-semibold">{task.title}</h1>
         <p className="text-muted-foreground">{task.description}</p>
       </header>
+
+      <AssignTaskPanel
+        taskId={task.id}
+        currentAssigneeId={task.ownerId}
+        currentAssigneeName={assignee?.name ?? "Unassigned"}
+        candidates={assignCandidates}
+      />
 
       {blockerChains.length > 0 && (
         <section className="rounded-lg border p-4 space-y-4">
@@ -57,21 +72,22 @@ export default async function TaskDetailPage({
             {goalPath.map((g, i) => (
               <li key={g.id} className="flex items-center gap-2">
                 {i > 0 && <span>→</span>}
-                <span
-                  className={
-                    g.healthStatus !== "on_track" ? "text-amber-600 font-medium" : ""
-                  }
+                <LinkButton
+                  href={`/goals/${g.id}`}
+                  variant="link"
+                  className="h-auto p-0 text-muted-foreground"
                 >
-                  {g.title}
-                </span>
+                  <span
+                    className={
+                      g.healthStatus !== "on_track" ? "text-amber-600 font-medium" : ""
+                    }
+                  >
+                    {g.title}
+                  </span>
+                </LinkButton>
               </li>
             ))}
           </ol>
-          {!task.linkedGoalId && (
-            <p className="text-sm text-amber-600">
-              No linked goal — surfaced as data quality signal
-            </p>
-          )}
         </section>
       )}
 

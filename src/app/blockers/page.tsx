@@ -3,6 +3,7 @@ import { getCurrentPersonId } from "@/infrastructure/session/mock-session";
 import { LinkButton } from "@/components/shared/LinkButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BlockerChainView } from "@/components/blockers/BlockerChainView";
+import { EmptyState } from "@/components/shared/EmptyState";
 import type { BlockerItem } from "@/application/services/aerial-view.service";
 
 function formatBlockedMeta(item: BlockerItem): string {
@@ -37,11 +38,11 @@ export default async function BlockersPage() {
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">{title}</h2>
       {items.length === 0 ? (
-        <Card>
-          <CardContent className="py-6">
-            <p className="text-sm text-muted-foreground">{empty}</p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          title="No blockers"
+          description={empty}
+          className="bg-card"
+        />
       ) : (
         items.map((item) => (
           <Card key={item.dependency.id}>

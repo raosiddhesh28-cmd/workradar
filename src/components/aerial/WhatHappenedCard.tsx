@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { GroundedDigestViewModel } from "@/application/digest/types/grounded-digest.dto";
 import { formatEventTime, formatRelativeTime } from "@/lib/format";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 interface WhatHappenedCardProps {
   digest: GroundedDigestViewModel;
@@ -112,9 +113,10 @@ export function WhatHappenedCard({ digest }: WhatHappenedCardProps) {
         )}
 
         {digest.sourceEventCount === 0 && digest.legacyItems.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No notable changes in the last 24 hours.
-          </p>
+          <EmptyState
+            title="No notable changes"
+            description="No activity recorded in the last 24 hours."
+          />
         )}
       </CardContent>
     </Card>

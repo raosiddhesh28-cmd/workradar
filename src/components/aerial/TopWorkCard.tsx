@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { completeTask, deferTask } from "@/app/actions";
 import type { TopWorkItem } from "@/application/services/aerial-view.service";
 import { LinkButton } from "@/components/shared/LinkButton";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 interface TopWorkCardProps {
   items: TopWorkItem[];
@@ -21,9 +22,10 @@ export function TopWorkCard({ items }: TopWorkCardProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            No open work items. You&apos;re clear for now.
-          </p>
+          <EmptyState
+            title="No open work"
+            description="You're clear for now — no ranked tasks in your queue."
+          />
         ) : (
           items.map((item, index) => (
             <div
