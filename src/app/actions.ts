@@ -6,10 +6,14 @@ import { getGraphStore } from "@/infrastructure/store";
 import { SESSION_COOKIE, getCurrentPersonId } from "@/infrastructure/session/mock-session";
 import { NOW, ORG_ID } from "@/infrastructure/seed/teams";
 import { publishDomainEvent } from "@/application/events/event-publisher.service";
-import {
+import { createTaskAssignedEvent,
   createDependencyAddedEvent,
   createTaskCompletedEvent,
 } from "@/domain/events/factories";
+
+export type AssignTaskResult =
+  | { ok: true }
+  | { ok: false; message: string };
 
 export async function switchPersona(personId: string): Promise<void> {
   const store = getGraphStore();
@@ -49,6 +53,61 @@ export async function completeTask(taskId: string): Promise<void> {
 
   revalidatePath("/aerial");
   revalidatePath(`/tasks/${taskId}`);
+}
+
+export async function assignTask(
+  taskId: string,
+  assigneePersonId: string,
+): Promise<AssignTaskResult> {
+  try {
+    const store = getGraphStore();
+    const task = store.getTask(taskId);
+    if (!task) {
+      return { ok: false, message: "Unable to assign task. Please try again." };
+    }
+
+    const assignee = store.getPerson(assigneePersonId);
+    if (!assignee) {
+      return { ok: false, message: "Unable to assign task. Please try again." };
+    }
+
+    const beforeOwnerId = task.ownerId;
+    if (beforeOwnerId === assigneePersonId) {
+      return { ok: true };
+    }
+
+    const actorPersonId = await getCurrentPersonId();
+    const timestamp = NOW.toISOString();
+
+    store.updateTask(taskId, { ownerId: assigneePersonId });
+
+    publishDomainEvent(
+      createTaskAssignedEvent({
+        eventId: `evt-assign-${taskId}-${Date.now()}`,
+        orgId: ORG_ID,
+        timestamp,
+        actorPersonId,
+        sourceSystem: task.sourceSystem,
+        taskId,
+        taskTitle: task.title,
+        beforeOwnerId,
+        afterOwnerId: assigneePersonId,
+        relatedPersonIds: [beforeOwnerId, assigneePersonId, actorPersonId],
+      }),
+    );
+
+    revalidatePath("/aerial");
+    revalidatePath(`/tasks/${taskId}`);
+    revalidatePath("/search");
+    revalidatePath(`/people/${assigneePersonId}`);
+    if (beforeOwnerId) {
+      revalidatePath(`/people/${beforeOwnerId}`);
+    }
+
+    return { ok: true };
+  } catch {
+    return { ok: false, message: "Unable to assign task. Please try again." };
+  }
 }
 
 export async function deferTask(taskId: string): Promise<void> {

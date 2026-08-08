@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import type { AttentionItem } from "@/application/services/aerial-view.service";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 interface NeedsAttentionCardProps {
   items: AttentionItem[];
@@ -22,9 +23,10 @@ export function NeedsAttentionCard({ items }: NeedsAttentionCardProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Nothing requires immediate attention right now.
-          </p>
+          <EmptyState
+            title="Nothing requires immediate attention"
+            description="You're all clear for now."
+          />
         ) : (
           items.map((item) => (
             <div
@@ -46,7 +48,7 @@ export function NeedsAttentionCard({ items }: NeedsAttentionCardProps) {
                 href={
                   item.type === "task"
                     ? `/tasks/${item.entityId}`
-                    : `/aerial`
+                    : `/goals/${item.entityId}`
                 }
                 className="font-medium text-sm hover:underline block"
               >
