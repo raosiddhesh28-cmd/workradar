@@ -8,3 +8,10 @@ export function formatRelativeTime(iso: string): string {
   if (diffHr < 24) return `${diffHr}h`;
   return `${Math.floor(diffHr / 24)}d`;
 }
+
+export function formatEventTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
