@@ -3,7 +3,7 @@ import {
   canAccessOrganizationalView,
   getOrganizationalView,
 } from "@/application/organization/organizational-view.service";
-import { getCurrentPersonId } from "@/infrastructure/session/mock-session";
+import { getCurrentPerson } from "@/infrastructure/session/mock-session";
 import { NOW } from "@/infrastructure/seed/teams";
 import { PersonaSwitcher } from "@/components/layout/PersonaSwitcher";
 import { FreshnessIndicator } from "@/components/layout/FreshnessIndicator";
@@ -14,13 +14,13 @@ import { CrossTeamDependenciesCard } from "@/components/organization/CrossTeamDe
 import { GoalHealthCard } from "@/components/organization/GoalHealthCard";
 
 export default async function OrganizationPage() {
-  const personId = await getCurrentPersonId();
+  const person = await getCurrentPerson();
 
-  if (!canAccessOrganizationalView(personId)) {
+  if (!canAccessOrganizationalView(person.id)) {
     redirect("/aerial");
   }
 
-  const view = getOrganizationalView(personId, NOW);
+  const view = getOrganizationalView(person.id, NOW);
   if (!view) notFound();
 
   return (
@@ -40,7 +40,10 @@ export default async function OrganizationPage() {
           </div>
           <FreshnessIndicator lastUpdated={view.lastUpdated} />
         </div>
-        <PersonaSwitcher currentPersonId={personId} />
+        <PersonaSwitcher
+          currentPersonId={person.id}
+          currentRole={person.role}
+        />
         {view.briefing && (
           <p className="text-sm leading-relaxed rounded-lg border bg-muted/30 p-3">
             {view.briefing}

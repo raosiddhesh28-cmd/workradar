@@ -1,6 +1,6 @@
 import { getAerialView } from "@/application/services/aerial-view.service";
 import { getGroundedWhatHappenedDigest } from "@/application/digest";
-import { getCurrentPerson, getCurrentPersonId } from "@/infrastructure/session/mock-session";
+import { getCurrentPerson } from "@/infrastructure/session/mock-session";
 import { NOW } from "@/infrastructure/seed/teams";
 import { TopWorkCard } from "@/components/aerial/TopWorkCard";
 import { WhatHappenedCard } from "@/components/aerial/WhatHappenedCard";
@@ -10,10 +10,9 @@ import { PersonaSwitcher } from "@/components/layout/PersonaSwitcher";
 import { FreshnessIndicator } from "@/components/layout/FreshnessIndicator";
 
 export default async function AerialPage() {
-  const personId = await getCurrentPersonId();
   const person = await getCurrentPerson();
-  const aerial = await getAerialView(personId, NOW);
-  const whatHappenedDigest = await getGroundedWhatHappenedDigest(personId, NOW);
+  const aerial = await getAerialView(person.id, NOW);
+  const whatHappenedDigest = await getGroundedWhatHappenedDigest(person.id, NOW);
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -33,7 +32,10 @@ export default async function AerialPage() {
           </div>
           <FreshnessIndicator lastUpdated={aerial.lastUpdated} />
         </div>
-        <PersonaSwitcher currentPersonId={personId} />
+        <PersonaSwitcher
+          currentPersonId={person.id}
+          currentRole={person.role}
+        />
       </header>
 
       <div className="grid gap-4 md:grid-cols-2">

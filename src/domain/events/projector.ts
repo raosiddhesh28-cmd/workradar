@@ -24,6 +24,14 @@ export function projectDomainEventToOrgEvent(event: ReadonlyDomainEvent): OrgEve
         eventType: "task_completed",
         summary: `${(event.payload as { taskTitle: string }).taskTitle} marked complete`,
       };
+    case DomainEventType.TASK_DEFERRED:
+      return {
+        ...base,
+        entityType: "task",
+        entityId: event.entityId,
+        eventType: "task_deferred",
+        summary: `${(event.payload as { taskTitle: string }).taskTitle} deferred`,
+      };
     case DomainEventType.TASK_ASSIGNED:
       return {
         ...base,
@@ -53,7 +61,7 @@ export function projectDomainEventToOrgEvent(event: ReadonlyDomainEvent): OrgEve
         ...base,
         entityType: "task",
         entityId: event.entityId,
-        eventType: "task_assigned",
+        eventType: "due_date_changed",
         summary: `Due date changed: ${(event.payload as { taskTitle: string }).taskTitle}`,
       };
     case DomainEventType.DEPENDENCY_ADDED:
@@ -191,17 +199,32 @@ export function projectSeedOrgEventToDomainEvent(
     case "dependency_unblocked":
       return {
         ...envelope,
-        type: DomainEventType.DEPENDENCY_REMOVED,
+        type: DomainEventType.TASK_UNBLOCKED,
         entityType: "dependency",
         entityId: orgEvent.entityId,
         taskId: (orgEvent.payload.blockedTaskId as string) ?? null,
         goalId: null,
         dependencyId: orgEvent.entityId,
         payload: {
+          taskTitle: orgEvent.summary,
           dependencyId: orgEvent.entityId,
-          blockerTaskId: null,
-          blockedTaskId: (orgEvent.payload.blockedTaskId as string) ?? null,
-          reason: orgEvent.summary,
+          resolution: orgEvent.summary,
+        },
+      };
+    case "task_deferred":
+      return {
+        ...envelope,
+        type: DomainEventType.TASK_DEFERRED,
+        entityType: "task",
+        entityId: orgEvent.entityId,
+        taskId: orgEvent.entityId,
+        goalId: null,
+        dependencyId: null,
+        payload: {
+          taskTitle:
+            (orgEvent.payload.taskTitle as string) ?? orgEvent.summary,
+          before: { status: "open" },
+          after: { status: "deferred" },
         },
       };
     case "goal_health_changed":

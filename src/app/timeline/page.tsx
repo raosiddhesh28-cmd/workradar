@@ -31,7 +31,10 @@ export default async function TimelinePage({
             Lightweight schedule view — start and due dates from task data
           </p>
         </div>
-        <PersonaSwitcher currentPersonId={person.id} />
+        <PersonaSwitcher
+          currentPersonId={person.id}
+          currentRole={person.role}
+        />
         <ScopeSwitcher
           basePath="/timeline"
           currentScope={timeline.scope}

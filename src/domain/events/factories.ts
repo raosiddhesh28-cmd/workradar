@@ -9,6 +9,7 @@ import type {
   TaskAssignedPayload,
   TaskBlockedPayload,
   TaskCompletedPayload,
+  TaskDeferredPayload,
   TaskUnblockedPayload,
   DueDateChangedPayload,
 } from "./types";
@@ -71,6 +72,37 @@ export function createTaskCompletedEvent(params: {
     eventId: params.eventId,
     orgId: params.orgId,
     type: DomainEventType.TASK_COMPLETED,
+    timestamp: params.timestamp,
+    actorPersonId: params.actorPersonId,
+    sourceSystem: params.sourceSystem,
+    entityType: "task",
+    entityId: params.taskId,
+    taskId: params.taskId,
+    relatedPersonIds: params.relatedPersonIds,
+    payload,
+  });
+}
+
+export function createTaskDeferredEvent(params: {
+  eventId: string;
+  orgId: string;
+  timestamp: string;
+  actorPersonId: string;
+  sourceSystem: string;
+  taskId: string;
+  taskTitle: string;
+  beforeStatus: TaskStatus;
+  relatedPersonIds?: string[];
+}): DomainEvent {
+  const payload: TaskDeferredPayload = {
+    taskTitle: params.taskTitle,
+    before: { status: params.beforeStatus },
+    after: { status: "deferred" },
+  };
+  return createDomainEvent({
+    eventId: params.eventId,
+    orgId: params.orgId,
+    type: DomainEventType.TASK_DEFERRED,
     timestamp: params.timestamp,
     actorPersonId: params.actorPersonId,
     sourceSystem: params.sourceSystem,

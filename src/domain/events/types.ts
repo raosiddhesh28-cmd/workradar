@@ -3,6 +3,7 @@ import type { GoalHealth, TaskStatus } from "../types";
 /** Canonical domain event types for the Event/Signal Bus (Phase 1). */
 export const DomainEventType = {
   TASK_COMPLETED: "TASK_COMPLETED",
+  TASK_DEFERRED: "TASK_DEFERRED",
   TASK_BLOCKED: "TASK_BLOCKED",
   TASK_UNBLOCKED: "TASK_UNBLOCKED",
   TASK_ASSIGNED: "TASK_ASSIGNED",
@@ -38,6 +39,12 @@ export interface TaskCompletedPayload {
   taskTitle: string;
   before: { status: TaskStatus };
   after: { status: TaskStatus; completedAt: string };
+}
+
+export interface TaskDeferredPayload {
+  taskTitle: string;
+  before: { status: TaskStatus };
+  after: { status: TaskStatus };
 }
 
 export interface TaskBlockedPayload {
@@ -91,6 +98,7 @@ export interface GoalHealthChangedPayload {
 
 export type DomainEventPayload =
   | TaskCompletedPayload
+  | TaskDeferredPayload
   | TaskBlockedPayload
   | TaskUnblockedPayload
   | TaskAssignedPayload

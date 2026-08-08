@@ -8,6 +8,7 @@ import { DEMO_PERSONAS } from "@/infrastructure/seed/people";
 import { ImpactExplanation } from "@/components/impact/ImpactExplanation";
 import { BlockerChainView } from "@/components/blockers/BlockerChainView";
 import { AssignTaskPanel } from "@/components/tasks/AssignTaskPanel";
+import { FlagBlockerPanel } from "@/components/tasks/FlagBlockerPanel";
 import { DueDateBadge } from "@/components/scheduling/DueDateBadge";
 import { classifyDueDate, formatDueDateLong } from "@/domain/scheduling/due-date";
 import { NOW } from "@/infrastructure/seed/teams";
@@ -81,6 +82,8 @@ export default async function TaskDetailPage({
           </p>
         )}
       </section>
+
+      <FlagBlockerPanel taskId={task.id} taskTitle={task.title} />
 
       {blockerChains.length > 0 && (
         <section className="rounded-lg border p-4 space-y-4">

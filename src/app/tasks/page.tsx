@@ -40,7 +40,10 @@ export default async function TasksPage({
             {data.items.length} task{data.items.length === 1 ? "" : "s"}
           </p>
         </div>
-        <PersonaSwitcher currentPersonId={person.id} />
+        <PersonaSwitcher
+          currentPersonId={person.id}
+          currentRole={person.role}
+        />
       </header>
 
       <TaskListFiltersBar
