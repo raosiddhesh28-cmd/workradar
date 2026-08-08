@@ -1,5 +1,7 @@
 import { getAerialView } from "@/application/services/aerial-view.service";
+import { getGroundedWhatHappenedDigest } from "@/application/digest";
 import { getCurrentPerson, getCurrentPersonId } from "@/infrastructure/session/mock-session";
+import { NOW } from "@/infrastructure/seed/teams";
 import { TopWorkCard } from "@/components/aerial/TopWorkCard";
 import { WhatHappenedCard } from "@/components/aerial/WhatHappenedCard";
 import { NeedsAttentionCard } from "@/components/aerial/NeedsAttentionCard";
@@ -10,7 +12,8 @@ import { FreshnessIndicator } from "@/components/layout/FreshnessIndicator";
 export default async function AerialPage() {
   const personId = await getCurrentPersonId();
   const person = await getCurrentPerson();
-  const aerial = getAerialView(personId);
+  const aerial = getAerialView(personId, NOW);
+  const whatHappenedDigest = await getGroundedWhatHappenedDigest(personId, NOW);
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -35,7 +38,7 @@ export default async function AerialPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <TopWorkCard items={aerial.topWork} />
-        <WhatHappenedCard items={aerial.whatHappened} />
+        <WhatHappenedCard digest={whatHappenedDigest} />
         <NeedsAttentionCard items={aerial.needsAttention} />
         <WhoIsBlockedCard
           blockingMe={aerial.whoIsBlocked.blockingMe}
