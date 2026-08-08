@@ -54,6 +54,11 @@ export function OrganizationalAttentionCard({
                   Connected to {item.goalTitle}
                 </p>
               )}
+              {item.dueDateLabel && item.dueDate.status !== "none" && (
+                <p className="text-xs font-medium">
+                  {item.dueDate.label.toUpperCase()} · Due {item.dueDateLabel}
+                </p>
+              )}
             </Link>
           ))
         )}

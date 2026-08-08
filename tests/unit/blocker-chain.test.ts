@@ -26,6 +26,7 @@ function makeTask(id: string, title: string, ownerId = "person-a"): Task {
     ownerId,
     linkedGoalId: null,
     initiativeId: null,
+    startDate: null,
     dueDate: null,
     status: "open",
     sourceSystem: "test",

@@ -14,6 +14,15 @@ export function AppHeader() {
             <LinkButton href="/aerial" variant="ghost" size="sm">
               Aerial
             </LinkButton>
+            <LinkButton href="/tasks" variant="ghost" size="sm">
+              Tasks
+            </LinkButton>
+            <LinkButton href="/timeline" variant="ghost" size="sm">
+              Timeline
+            </LinkButton>
+            <LinkButton href="/progress" variant="ghost" size="sm">
+              Progress
+            </LinkButton>
             <LinkButton href="/blockers" variant="ghost" size="sm">
               Blockers
             </LinkButton>

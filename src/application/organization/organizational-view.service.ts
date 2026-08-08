@@ -16,6 +16,11 @@ import {
   buildOrganizationalWhyNarrative,
   type CrossTeamDependencyView,
 } from "@/domain/organization/cross-team-dependencies";
+import {
+  classifyDueDate,
+  formatDueDateDisplay,
+  type DueDateClassification,
+} from "@/domain/scheduling/due-date";
 import { getGraphStore } from "@/infrastructure/store";
 import { NOW } from "@/infrastructure/seed/teams";
 
@@ -28,6 +33,8 @@ export interface OrganizationalAttentionItem {
   context: string;
   goalTitle: string | null;
   urgencyLabel: string;
+  dueDate: DueDateClassification;
+  dueDateLabel: string | null;
 }
 
 export interface TopOrganizationalImpactItem {
@@ -42,6 +49,8 @@ export interface TopOrganizationalImpactItem {
   goalHealth: GoalHealth | null;
   downstreamTaskCount: number;
   downstreamTeamCount: number;
+  dueDate: DueDateClassification;
+  dueDateLabel: string | null;
 }
 
 export interface GoalHealthItem {
@@ -113,7 +122,18 @@ export function getOrganizationalAttention(
       goal?.healthStatus === "at_risk" ||
       goal?.healthStatus === "breached";
 
-    if (!urgent && !highBlocking) continue;
+    const dueDate = classifyDueDate(
+      task.dueDate,
+      task.completedAt,
+      task.status,
+      now,
+    );
+    const dueSoonOperational =
+      dueDate.status === "overdue" ||
+      dueDate.status === "due_today" ||
+      dueDate.status === "due_soon";
+
+    if (!urgent && !highBlocking && !dueSoonOperational) continue;
 
     const downstream = getBlockedPartiesForTask(
       graph,
@@ -129,6 +149,10 @@ export function getOrganizationalAttention(
     if (blockedTitles.length > 0) {
       context = `Blocking ${blockedTitles.join(" and ")}`;
     }
+    if (dueSoonOperational && dueDate.dueDate) {
+      const duePart = `${dueDate.label} · Due ${formatDueDateDisplay(dueDate.dueDate)}`;
+      context = context ? `${context} · ${duePart}` : duePart;
+    }
 
     items.push({
       id: `org-attn-${task.id}`,
@@ -137,13 +161,18 @@ export function getOrganizationalAttention(
       severity:
         b.urgency >= 0.85 ||
         goal?.healthStatus === "breached" ||
-        highBlocking
+        highBlocking ||
+        dueDate.status === "overdue"
           ? "high"
           : "medium",
       reason: task.impactScore.oneLineWhy,
       context,
       goalTitle: strategic?.goal.title ?? goal?.title ?? null,
       urgencyLabel: urgencyLabel(b.urgency),
+      dueDate,
+      dueDateLabel: dueDate.dueDate
+        ? formatDueDateDisplay(dueDate.dueDate)
+        : null,
     });
   }
 
@@ -188,6 +217,13 @@ export function getTopOrganizationalImpact(
       ? graph.goals.find((g) => g.id === task.linkedGoalId)
       : null;
 
+    const dueDate = classifyDueDate(
+      task.dueDate,
+      task.completedAt,
+      task.status,
+      now,
+    );
+
     return {
       rank: index + 1,
       task,
@@ -200,6 +236,10 @@ export function getTopOrganizationalImpact(
       goalHealth: strategic?.goal.healthStatus ?? goal?.healthStatus ?? null,
       downstreamTaskCount: downstream.taskIds.length,
       downstreamTeamCount: teamIds.size,
+      dueDate,
+      dueDateLabel: dueDate.dueDate
+        ? formatDueDateDisplay(dueDate.dueDate)
+        : null,
     };
   });
 }

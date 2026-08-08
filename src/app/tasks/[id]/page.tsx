@@ -8,6 +8,9 @@ import { DEMO_PERSONAS } from "@/infrastructure/seed/people";
 import { ImpactExplanation } from "@/components/impact/ImpactExplanation";
 import { BlockerChainView } from "@/components/blockers/BlockerChainView";
 import { AssignTaskPanel } from "@/components/tasks/AssignTaskPanel";
+import { DueDateBadge } from "@/components/scheduling/DueDateBadge";
+import { classifyDueDate, formatDueDateLong } from "@/domain/scheduling/due-date";
+import { NOW } from "@/infrastructure/seed/teams";
 import { Button } from "@/components/ui/button";
 import { completeTask, deferTask } from "@/app/actions";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +33,12 @@ export default async function TaskDetailPage({
     id: p.id,
     name: store.getPerson(p.id)?.name ?? p.label.split(" — ")[0] ?? p.id,
   }));
+  const dueDate = classifyDueDate(
+    task.dueDate,
+    task.completedAt,
+    task.status,
+    NOW,
+  );
 
   return (
     <main className="mx-auto max-w-3xl w-full px-4 py-8 space-y-6">
@@ -52,6 +61,26 @@ export default async function TaskDetailPage({
         currentAssigneeName={assignee?.name ?? "Unassigned"}
         candidates={assignCandidates}
       />
+
+      <section className="rounded-lg border p-4 space-y-3">
+        <h2 className="text-sm font-medium">Schedule</h2>
+        <DueDateBadge classification={dueDate} />
+        {task.startDate && (
+          <p className="text-sm text-muted-foreground">
+            Start: {formatDueDateLong(task.startDate)}
+          </p>
+        )}
+        {task.dueDate && (
+          <p className="text-sm text-muted-foreground">
+            Due: {formatDueDateLong(task.dueDate)}
+          </p>
+        )}
+        {task.completedAt && (
+          <p className="text-sm text-muted-foreground">
+            Completed: {formatDueDateLong(task.completedAt)}
+          </p>
+        )}
+      </section>
 
       {blockerChains.length > 0 && (
         <section className="rounded-lg border p-4 space-y-4">

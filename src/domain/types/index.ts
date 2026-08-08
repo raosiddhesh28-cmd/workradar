@@ -65,6 +65,7 @@ export interface Task {
   ownerId: string;
   linkedGoalId: string | null;
   initiativeId: string | null;
+  startDate: string | null;
   dueDate: string | null;
   status: TaskStatus;
   sourceSystem: string;
