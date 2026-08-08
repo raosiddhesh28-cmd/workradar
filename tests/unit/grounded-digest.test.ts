@@ -222,8 +222,8 @@ describe("Grounded digest — existing aerial view preserved", () => {
     resetAiServices();
   });
 
-  it("does not change synchronous aerial view anchors", () => {
-    const view = getAerialView("person-priya", NOW);
+  it("does not change synchronous aerial view anchors", async () => {
+    const view = await getAerialView("person-priya", NOW);
     expect(view.topWork.length).toBeGreaterThan(0);
     expect(view.whatHappened.length).toBeGreaterThan(0);
     expect(view.personName).toBe("Priya Sharma");

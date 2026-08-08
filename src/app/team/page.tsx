@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default async function TeamPage() {
   const personId = await getCurrentPersonId();
-  const rollup = getTeamRollup(personId);
+  const rollup = await getTeamRollup(personId);
   if (!rollup) notFound();
 
   return (
@@ -61,11 +61,17 @@ export default async function TeamPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {rollup.teamBlockers.map((b) => (
-              <div key={b.dependency.id} className="text-sm border rounded p-3">
+              <div key={b.dependency.id} className="text-sm border rounded p-3 space-y-2">
                 <p className="font-medium">{b.taskTitle}</p>
                 <p className="text-muted-foreground">
-                  {b.otherPartyName} · {b.daysBlocked}d
+                  {b.blockedPersonName ?? b.otherPartyName} · {b.daysBlocked}d blocked
+                  {b.daysOverdue != null && b.daysOverdue > 0
+                    ? ` · ${b.daysOverdue}d overdue`
+                    : ""}
                 </p>
+                {b.narrative && (
+                  <p className="text-sm leading-snug">{b.narrative}</p>
+                )}
               </div>
             ))}
           </CardContent>

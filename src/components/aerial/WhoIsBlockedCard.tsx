@@ -7,6 +7,17 @@ interface WhoIsBlockedCardProps {
   imBlocking: BlockerItem[];
 }
 
+function formatBlockedMeta(item: BlockerItem): string {
+  const parts: string[] = [item.otherPartyName];
+  parts.push(`blocked for ${item.daysBlocked} day${item.daysBlocked === 1 ? "" : "s"}`);
+  if (item.daysOverdue != null && item.daysOverdue > 0) {
+    parts.push(
+      `${item.daysOverdue} day${item.daysOverdue === 1 ? "" : "s"} overdue`,
+    );
+  }
+  return parts.join(" · ");
+}
+
 function BlockerList({
   title,
   items,
@@ -22,16 +33,29 @@ function BlockerList({
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">{empty}</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {items.map((item) => (
             <li
               key={item.dependency.id}
-              className="text-sm rounded-md border p-2 space-y-0.5"
+              className="text-sm rounded-md border p-3 space-y-2"
             >
-              <p className="font-medium">{item.taskTitle}</p>
-              <p className="text-muted-foreground">
-                {item.otherPartyName} · {item.daysBlocked}d blocked
-              </p>
+              <div>
+                <p className="font-medium">{item.taskTitle}</p>
+                <p className="text-muted-foreground">{formatBlockedMeta(item)}</p>
+              </div>
+              {item.direction === "blocking_me" && item.narrative && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Why?
+                  </p>
+                  <p className="text-sm leading-snug">{item.narrative}</p>
+                </div>
+              )}
+              {item.chain.nodes.length > 1 && (
+                <LinkButton href="/blockers" variant="ghost" size="sm" className="h-7 px-2">
+                  View blocker chain
+                </LinkButton>
+              )}
             </li>
           ))}
         </ul>

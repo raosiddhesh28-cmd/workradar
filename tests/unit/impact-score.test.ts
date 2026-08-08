@@ -54,17 +54,19 @@ describe("Aerial View", () => {
     resetGraphStore();
   });
 
-  it("returns four anchors for Priya", () => {
-    const view = getAerialView("person-priya", NOW);
+  it("returns four anchors for Priya", async () => {
+    const view = await getAerialView("person-priya", NOW);
     expect(view.topWork.length).toBeGreaterThan(0);
     expect(view.topWork.length).toBeLessThanOrEqual(5);
     expect(view.whatHappened.length).toBeGreaterThan(0);
     expect(view.personName).toBe("Priya Sharma");
   });
 
-  it("shows cross-team blockers for Jordan", () => {
-    const view = getAerialView("person-jordan", NOW);
+  it("shows cross-team blockers for Jordan", async () => {
+    const view = await getAerialView("person-jordan", NOW);
     const blockingMe = view.whoIsBlocked.blockingMe;
     expect(blockingMe.length).toBeGreaterThan(0);
+    expect(blockingMe[0].narrative).toBeTruthy();
+    expect(blockingMe[0].chain.nodes.length).toBeGreaterThanOrEqual(2);
   });
 });

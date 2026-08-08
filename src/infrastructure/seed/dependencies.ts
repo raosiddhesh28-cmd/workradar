@@ -3,6 +3,18 @@ import { ORG_ID } from "./teams";
 
 export const dependencies: Dependency[] = [
   {
+    id: "dep-infra-blocks-api",
+    orgId: ORG_ID,
+    blockerTaskId: "task-infra-review",
+    blockerPersonId: null,
+    blockedTaskId: "task-api-migration",
+    blockedPersonId: null,
+    status: "unresolved",
+    flaggedAt: "2026-08-04T14:00:00.000Z",
+    resolvedAt: null,
+    description: "API migration requires infrastructure security sign-off",
+  },
+  {
     id: "dep-api-blocks-mobile",
     orgId: ORG_ID,
     blockerTaskId: "task-api-migration",
