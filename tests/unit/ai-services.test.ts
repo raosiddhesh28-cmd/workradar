@@ -11,6 +11,7 @@ import {
   MockAdvisoryScoringAnalysisService,
   withAiFallback,
   buildDigestFallback,
+  buildBlockerFallback,
   buildNlParsingFallback,
 } from "@/infrastructure/ai";
 import { resetGraphStore } from "@/infrastructure/store";
@@ -191,21 +192,11 @@ describe("AI fallback behavior", () => {
 
     const result = await withAiFallback(
       () => service.explainBlocker(context),
-      () => ({
-        data: {
-          narrative: `Blocked: ${context.description}`,
-          rootCauseSummary: context.description,
-          suggestedNextStep: "Review manually.",
-          citations: [],
-          dependencyPath: context.path,
-        },
-        status: "fallback" as const,
-        source: "deterministic-fallback" as const,
-        generatedAt: new Date().toISOString(),
-      }),
+      () => buildBlockerFallback(context),
     );
 
     expect(result.status).toBe("fallback");
     expect(result.data.dependencyPath.length).toBeGreaterThan(0);
+    expect(result.data.rootBlockerSummary).toBeTruthy();
   });
 });

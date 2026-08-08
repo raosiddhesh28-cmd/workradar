@@ -12,7 +12,7 @@ import { FreshnessIndicator } from "@/components/layout/FreshnessIndicator";
 export default async function AerialPage() {
   const personId = await getCurrentPersonId();
   const person = await getCurrentPerson();
-  const aerial = getAerialView(personId, NOW);
+  const aerial = await getAerialView(personId, NOW);
   const whatHappenedDigest = await getGroundedWhatHappenedDigest(personId, NOW);
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",

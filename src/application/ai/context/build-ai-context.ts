@@ -1,11 +1,16 @@
 import type { OrgGraph } from "@/domain/types";
 import { getUnresolvedDependenciesForPerson } from "@/domain/graph/impact-graph";
+import {
+  buildBlockerChainForDependency,
+  type BlockerChain,
+} from "@/domain/graph/blocker-chain";
 import { projectDomainEventToOrgEvent } from "@/domain/events/projector";
 import { queryDomainEvents } from "@/application/events/event-publisher.service";
 import { getGraphStore } from "@/infrastructure/store";
 import type { DigestNarrativeInput } from "../contracts/digest-narrative.contract";
 import type {
   BlockerRootCauseInput,
+  BlockerChainSnapshot,
   DependencyPathNode,
 } from "../contracts/blocker-root-cause.contract";
 import type { AdvisoryScoringInput } from "../contracts/advisory-scoring.contract";
@@ -18,6 +23,49 @@ function daysSince(iso: string, now: Date): number {
 
 function snapshotGraph(graph: OrgGraph): OrgGraph {
   return structuredClone(graph);
+}
+
+function toChainSnapshot(chain: BlockerChain): BlockerChainSnapshot {
+  return {
+    dependencyId: chain.dependencyId,
+    blockedTaskId: chain.blockedTaskId,
+    blockedTaskTitle: chain.blockedTaskTitle,
+    blockedPersonId: chain.blockedPersonId,
+    direction: chain.direction,
+    daysBlocked: chain.daysBlocked,
+    nodes: chain.nodes.map((n) => ({ ...n })),
+    immediateBlockerTaskId: chain.immediateBlockerTaskId,
+    rootBlockerTaskId: chain.rootBlockerTaskId,
+    rootBlockerTitle: chain.rootBlockerTitle,
+    hasDeeperUpstream: chain.hasDeeperUpstream,
+    chainComplete: chain.chainComplete,
+    cycleDetected: chain.cycleDetected,
+  };
+}
+
+function buildPathFromChain(
+  graph: OrgGraph,
+  chain: BlockerChain,
+  dependencyDescription: string,
+): DependencyPathNode[] {
+  const path: DependencyPathNode[] = [];
+
+  for (const node of chain.nodes) {
+    path.push({ type: "task", id: node.taskId, label: node.taskTitle });
+    if (node.ownerId && node.ownerName) {
+      path.push({ type: "person", id: node.ownerId, label: node.ownerName });
+    }
+  }
+
+  if (path.length === 0) {
+    path.push({
+      type: "dependency",
+      id: chain.dependencyId,
+      label: dependencyDescription,
+    });
+  }
+
+  return path;
 }
 
 /**
@@ -79,6 +127,9 @@ export function buildBlockerRootCauseContext(
       ? "im_blocking"
       : "blocking_me";
 
+  const chain = buildBlockerChainForDependency(graph, dependency, direction, now);
+  const blockingChain = toChainSnapshot(chain);
+
   const taskId =
     direction === "blocking_me" ? dependency.blockerTaskId : dependency.blockedTaskId;
   const task = taskId ? graph.tasks.find((t) => t.id === taskId) : null;
@@ -91,15 +142,7 @@ export function buildBlockerRootCauseContext(
           : null));
   const other = otherPersonId ? graph.people.find((p) => p.id === otherPersonId) : null;
 
-  const path: DependencyPathNode[] = [
-    { type: "dependency", id: dependency.id, label: dependency.description },
-  ];
-  if (task) {
-    path.unshift({ type: "task", id: task.id, label: task.title });
-  }
-  if (other) {
-    path.push({ type: "person", id: other.id, label: other.name });
-  }
+  const path = buildPathFromChain(graph, chain, dependency.description);
 
   const relatedEvents = queryDomainEvents({ dependencyId, types: undefined }).map((e) => {
     const orgEvent = projectDomainEventToOrgEvent(e);
@@ -118,8 +161,12 @@ export function buildBlockerRootCauseContext(
     path,
     relatedEvents,
     daysBlocked: daysSince(dependency.flaggedAt, now),
-    taskTitle: task?.title ?? null,
+    taskTitle:
+      direction === "blocking_me"
+        ? (chain.blockedTaskTitle ?? task?.title ?? null)
+        : (task?.title ?? chain.blockedTaskTitle ?? null),
     otherPartyName: other?.name ?? "Unknown",
+    blockingChain,
   };
 }
 

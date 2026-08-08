@@ -15,6 +15,10 @@ import type {
   AdvisoryScoringOutput,
 } from "@/application/ai/contracts/advisory-scoring.contract";
 import { createAiResult } from "@/application/ai/contracts/shared";
+import {
+  buildDeterministicBlockerNarrative,
+  buildRootBlockerSummary,
+} from "@/domain/graph/blocker-chain";
 
 export function buildDigestFallback(
   input: DigestNarrativeInput,
@@ -57,23 +61,17 @@ export function buildDigestFallback(
 export function buildBlockerFallback(
   input: BlockerRootCauseInput,
 ): ReturnType<typeof createAiResult<BlockerRootCauseOutput>> {
-  const pathLabels = input.path.map((n) => n.label).join(" → ");
-  const narrative = [
-    input.direction === "blocking_me"
-      ? `You are blocked by: ${input.otherPartyName}.`
-      : `You are blocking: ${input.otherPartyName}.`,
-    input.description,
-    `Open for ${input.daysBlocked} day(s).`,
-    pathLabels ? `Dependency path: ${pathLabels}` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const chain = {
+    ...input.blockingChain,
+    cycleTaskIds: [],
+    traceRefs: [],
+  };
+  const narrative = buildDeterministicBlockerNarrative(chain);
 
   return createAiResult({
     data: {
       narrative,
-      rootCauseSummary: input.description,
-      suggestedNextStep: "Review the dependency path and coordinate with the other party.",
+      rootBlockerSummary: buildRootBlockerSummary(chain),
       citations: input.relatedEvents.map((e, i) => ({
         eventId: e.eventId,
         sequence: i + 1,
