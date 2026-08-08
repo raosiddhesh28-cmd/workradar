@@ -27,7 +27,7 @@ describe("MVP actions and Event Bus integration", () => {
 
   it("hydrates bus from seed data with correct count", () => {
     const bus = getEventBus();
-    expect(bus.getSequence()).toBe(8);
+    expect(bus.getSequence()).toBe(11);
     const types = bus.getAll().map((e) => e.type);
     expect(types).toContain(DomainEventType.GOAL_HEALTH_CHANGED);
     expect(types).toContain(DomainEventType.TASK_COMPLETED);

@@ -132,3 +132,12 @@ export function resolveOrganizationalScope(
 export function isTaskInScope(scope: OrganizationalScope, taskId: string): boolean {
   return scope.taskIds.has(taskId);
 }
+
+export function getOrganizationTaskScope(
+  graph: OrgGraph,
+  viewerId: string,
+  getDirectReports: (managerId: string) => Person[],
+): Set<string> | null {
+  const scope = resolveOrganizationalScope(graph, viewerId, getDirectReports);
+  return scope?.taskIds ?? null;
+}

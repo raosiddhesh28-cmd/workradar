@@ -91,6 +91,15 @@ export function getBlockedPartiesForTask(
   return { taskIds, personIds: [...personIds] };
 }
 
+export function isTaskBlocked(graph: OrgGraph, taskId: string): boolean {
+  return graph.dependencies.some(
+    (d) =>
+      d.status === "unresolved" &&
+      d.blockedTaskId === taskId &&
+      (d.blockerTaskId || d.blockerPersonId),
+  );
+}
+
 export function getUnresolvedDependenciesForPerson(
   graph: OrgGraph,
   personId: string,

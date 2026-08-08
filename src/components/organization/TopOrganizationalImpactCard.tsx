@@ -69,6 +69,11 @@ export function TopOrganizationalImpactCard({
                     {item.downstreamTeamCount === 1 ? "" : "s"}
                   </p>
                 )}
+                {item.dueDateLabel && item.dueDate.status !== "none" && (
+                  <p className="text-xs text-muted-foreground">
+                    {item.dueDate.label} · Due {item.dueDateLabel}
+                  </p>
+                )}
               </div>
             </Link>
           ))
