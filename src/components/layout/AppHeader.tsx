@@ -20,6 +20,9 @@ export function AppHeader() {
             <LinkButton href="/team" variant="ghost" size="sm">
               Team
             </LinkButton>
+            <LinkButton href="/organization" variant="ghost" size="sm">
+              Organization
+            </LinkButton>
           </nav>
         </div>
         <SearchBar />

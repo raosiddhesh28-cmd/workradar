@@ -25,6 +25,9 @@ export function PersonaSwitcher({ currentPersonId }: PersonaSwitcherProps) {
       <LinkButton href="/team" size="sm" variant="ghost">
         Team view
       </LinkButton>
+      <LinkButton href="/organization" size="sm" variant="ghost">
+        Organization
+      </LinkButton>
     </div>
   );
 }

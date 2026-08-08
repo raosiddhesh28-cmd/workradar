@@ -119,6 +119,7 @@ export const DEMO_PERSONAS = [
   { id: "person-devon", label: "Devon Walsh — Manager" },
   { id: "person-jordan", label: "Jordan Lee — IC (blocked)" },
   { id: "person-alex", label: "Alex Kim — IC (CS)" },
+  { id: "person-vp-eng", label: "Marisol Vega — Executive" },
 ];
 
 export const DEFAULT_PERSON_ID = "person-priya";
