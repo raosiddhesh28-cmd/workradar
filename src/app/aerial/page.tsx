@@ -8,6 +8,7 @@ import { NeedsAttentionCard } from "@/components/aerial/NeedsAttentionCard";
 import { WhoIsBlockedCard } from "@/components/aerial/WhoIsBlockedCard";
 import { PersonaSwitcher } from "@/components/layout/PersonaSwitcher";
 import { FreshnessIndicator } from "@/components/layout/FreshnessIndicator";
+import { PageHeader } from "@/components/design-system/PageHeader";
 
 export default async function AerialPage() {
   const person = await getCurrentPerson();
@@ -20,32 +21,31 @@ export default async function AerialPage() {
   });
 
   return (
-    <main className="mx-auto max-w-6xl w-full px-4 py-8 space-y-6">
-      <header className="space-y-3 border-b pb-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">WorkRadar</p>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Good morning, {person.name.split(" ")[0]}
-            </h1>
-            <p className="text-sm text-muted-foreground">{today}</p>
-          </div>
-          <FreshnessIndicator lastUpdated={aerial.lastUpdated} />
-        </div>
+    <main id="main-content" className="wr-page space-y-8">
+      <PageHeader
+        eyebrow="Organizational aerial view"
+        title={`Good morning, ${person.name.split(" ")[0]}`}
+        description={today}
+        meta={<FreshnessIndicator lastUpdated={aerial.lastUpdated} />}
+      >
         <PersonaSwitcher
           currentPersonId={person.id}
           currentRole={person.role}
         />
-      </header>
+      </PageHeader>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="space-y-6">
         <TopWorkCard items={aerial.topWork} />
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <NeedsAttentionCard items={aerial.needsAttention} />
+          <WhoIsBlockedCard
+            blockingMe={aerial.whoIsBlocked.blockingMe}
+            imBlocking={aerial.whoIsBlocked.imBlocking}
+          />
+        </div>
+
         <WhatHappenedCard digest={whatHappenedDigest} />
-        <NeedsAttentionCard items={aerial.needsAttention} />
-        <WhoIsBlockedCard
-          blockingMe={aerial.whoIsBlocked.blockingMe}
-          imBlocking={aerial.whoIsBlocked.imBlocking}
-        />
       </div>
     </main>
   );

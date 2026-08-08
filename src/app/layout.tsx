@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { SkipLink } from "@/components/design-system/SkipLink";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "WorkRadar — Organizational Impact Cockpit",
   description:
-    "Systems-thinking day planner that computes what matters from goals, dependencies, and organizational impact.",
+    "Systems-thinking work intelligence that computes what matters from goals, dependencies, and organizational impact.",
 };
 
 export default function RootLayout({
@@ -31,6 +32,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <SkipLink />
         <TooltipProvider>
           <AppHeader />
           {children}

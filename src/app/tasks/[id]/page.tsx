@@ -14,7 +14,10 @@ import { classifyDueDate, formatDueDateLong } from "@/domain/scheduling/due-date
 import { NOW } from "@/infrastructure/seed/teams";
 import { Button } from "@/components/ui/button";
 import { completeTask, deferTask } from "@/app/actions";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/design-system/PageHeader";
+import { SectionCard } from "@/components/design-system/SectionCard";
+import { StatusLabel } from "@/components/design-system/StatusLabel";
+import { ImpactScoreBadge } from "@/components/design-system/ImpactScoreBadge";
 
 export default async function TaskDetailPage({
   params,
@@ -42,104 +45,127 @@ export default async function TaskDetailPage({
   );
 
   return (
-    <main className="mx-auto max-w-3xl w-full px-4 py-8 space-y-6">
+    <main id="main-content" className="wr-page-narrow space-y-6">
       <LinkButton href="/aerial" variant="ghost" size="sm">
         ← Back to aerial view
       </LinkButton>
 
-      <header className="space-y-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="outline">{task.sourceSystem}</Badge>
-          <Badge variant="secondary">{task.status}</Badge>
-        </div>
-        <h1 className="text-2xl font-semibold">{task.title}</h1>
-        <p className="text-muted-foreground">{task.description}</p>
-      </header>
-
-      <AssignTaskPanel
-        taskId={task.id}
-        currentAssigneeId={task.ownerId}
-        currentAssigneeName={assignee?.name ?? "Unassigned"}
-        candidates={assignCandidates}
+      <PageHeader
+        eyebrow={task.sourceSystem}
+        title={task.title}
+        description={task.description}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusLabel variant="neutral">{task.status.replace("_", " ")}</StatusLabel>
+            <ImpactScoreBadge score={impactScore.score} size="sm" />
+          </div>
+        }
       />
 
-      <section className="rounded-lg border p-4 space-y-3">
-        <h2 className="text-sm font-medium">Schedule</h2>
-        <DueDateBadge classification={dueDate} />
-        {task.startDate && (
-          <p className="text-sm text-muted-foreground">
-            Start: {formatDueDateLong(task.startDate)}
-          </p>
-        )}
-        {task.dueDate && (
-          <p className="text-sm text-muted-foreground">
-            Due: {formatDueDateLong(task.dueDate)}
-          </p>
-        )}
-        {task.completedAt && (
-          <p className="text-sm text-muted-foreground">
-            Completed: {formatDueDateLong(task.completedAt)}
-          </p>
-        )}
-      </section>
+      <div className="grid gap-6">
+        <SectionCard title="Impact evidence" description="Deterministic ranking explanation">
+          <ImpactExplanation
+            breakdown={impactScore.componentBreakdown}
+            oneLineWhy={impactScore.oneLineWhy}
+            score={impactScore.score}
+          />
+        </SectionCard>
 
-      <FlagBlockerPanel taskId={task.id} taskTitle={task.title} />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <SectionCard title="Schedule">
+            <DueDateBadge classification={dueDate} />
+            <dl className="mt-3 space-y-1 text-sm text-muted-foreground">
+              {task.startDate && (
+                <div>
+                  <dt className="inline font-medium text-foreground">Start: </dt>
+                  <dd className="inline">{formatDueDateLong(task.startDate)}</dd>
+                </div>
+              )}
+              {task.dueDate && (
+                <div>
+                  <dt className="inline font-medium text-foreground">Due: </dt>
+                  <dd className="inline">{formatDueDateLong(task.dueDate)}</dd>
+                </div>
+              )}
+              {task.completedAt && (
+                <div>
+                  <dt className="inline font-medium text-foreground">Completed: </dt>
+                  <dd className="inline">{formatDueDateLong(task.completedAt)}</dd>
+                </div>
+              )}
+            </dl>
+          </SectionCard>
 
-      {blockerChains.length > 0 && (
-        <section className="rounded-lg border p-4 space-y-4">
-          <h2 className="text-sm font-medium">Blocking chain</h2>
-          {blockerChains.map(({ dependency, chain, narrative }) => (
-            <div key={dependency.id} className="space-y-2 border-t first:border-t-0 pt-3 first:pt-0">
-              {narrative && <p className="text-sm">{narrative}</p>}
-              <BlockerChainView chain={chain} compact />
-            </div>
-          ))}
-        </section>
-      )}
+          <div className="space-y-6">
+            <AssignTaskPanel
+              taskId={task.id}
+              currentAssigneeId={task.ownerId}
+              currentAssigneeName={assignee?.name ?? "Unassigned"}
+              candidates={assignCandidates}
+            />
+            <FlagBlockerPanel taskId={task.id} taskTitle={task.title} />
+          </div>
+        </div>
 
-      {goalPath.length > 0 && (
-        <section className="rounded-lg border p-4 space-y-2">
-          <h2 className="text-sm font-medium">Goal alignment path</h2>
-          <ol className="flex flex-wrap gap-2 text-sm text-muted-foreground">
-            {goalPath.map((g, i) => (
-              <li key={g.id} className="flex items-center gap-2">
-                {i > 0 && <span>→</span>}
-                <LinkButton
-                  href={`/goals/${g.id}`}
-                  variant="link"
-                  className="h-auto p-0 text-muted-foreground"
-                >
-                  <span
-                    className={
-                      g.healthStatus !== "on_track" ? "text-amber-600 font-medium" : ""
-                    }
-                  >
-                    {g.title}
-                  </span>
-                </LinkButton>
-              </li>
+        {blockerChains.length > 0 && (
+          <SectionCard
+            title="Blocking chain"
+            description="Upstream dependencies from the impact graph"
+          >
+            {blockerChains.map(({ dependency, chain, narrative }) => (
+              <div
+                key={dependency.id}
+                className="space-y-3 border-t border-border pt-4 first:border-t-0 first:pt-0"
+              >
+                {narrative && (
+                  <p className="text-sm leading-relaxed">{narrative}</p>
+                )}
+                <BlockerChainView chain={chain} compact />
+              </div>
             ))}
-          </ol>
-        </section>
-      )}
+          </SectionCard>
+        )}
 
-      <section className="rounded-lg border p-4">
-        <ImpactExplanation
-          breakdown={impactScore.componentBreakdown}
-          oneLineWhy={impactScore.oneLineWhy}
-          score={impactScore.score}
-        />
-      </section>
+        {goalPath.length > 0 && (
+          <SectionCard title="Organizational path" description="Goal alignment chain">
+            <ol className="flex flex-wrap gap-2 text-sm">
+              {goalPath.map((g, i) => (
+                <li key={g.id} className="flex items-center gap-2">
+                  {i > 0 && (
+                    <span className="text-muted-foreground" aria-hidden>
+                      →
+                    </span>
+                  )}
+                  <LinkButton
+                    href={`/goals/${g.id}`}
+                    variant="link"
+                    className="h-auto p-0"
+                  >
+                    <span className="flex items-center gap-2">
+                      {g.title}
+                      {g.healthStatus !== "on_track" && (
+                        <StatusLabel variant="warning">
+                          {g.healthStatus.replace("_", " ")}
+                        </StatusLabel>
+                      )}
+                    </span>
+                  </LinkButton>
+                </li>
+              ))}
+            </ol>
+          </SectionCard>
+        )}
 
-      <div className="flex gap-2">
-        <form action={completeTask.bind(null, task.id)}>
-          <Button type="submit">Mark done</Button>
-        </form>
-        <form action={deferTask.bind(null, task.id)}>
-          <Button type="submit" variant="outline">
-            Snooze / defer
-          </Button>
-        </form>
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
+          <form action={completeTask.bind(null, task.id)}>
+            <Button type="submit">Mark done</Button>
+          </form>
+          <form action={deferTask.bind(null, task.id)}>
+            <Button type="submit" variant="outline">
+              Snooze / defer
+            </Button>
+          </form>
+        </div>
       </div>
     </main>
   );
